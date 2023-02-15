@@ -137,7 +137,7 @@ def text2image_ldm_stable(
     low_resource: bool = False,
 ):
     register_attention_control(model, controller)
-    height = width = 768
+    height = width = 512
     batch_size = len(prompt)
 
     text_input = model.tokenizer(
