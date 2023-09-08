@@ -64,13 +64,18 @@ def view_images(images, num_rows=1, offset_ratio=0.02):
 def diffusion_step(model, controller, latents, context, t, guidance_scale, low_resource=False):
     if low_resource:
         noise_pred_uncond = model.unet(latents, t, encoder_hidden_states=context[0])["sample"]
+        noise_pred_uncond *= 2  # Double the tensor
         noise_prediction_text = model.unet(latents, t, encoder_hidden_states=context[1])["sample"]
+        noise_prediction_text *= 2  # Double the tensor
     else:
         latents_input = torch.cat([latents] * 2)
+        latents_input *= 2  # Double the tensor
         noise_pred = model.unet(latents_input, t, encoder_hidden_states=context)["sample"]
+        noise_pred *= 2  # Double the tensor
         noise_pred_uncond, noise_prediction_text = noise_pred.chunk(2)
     noise_pred = noise_pred_uncond + guidance_scale * (noise_prediction_text - noise_pred_uncond)
     latents = model.scheduler.step(noise_pred, t, latents)["prev_sample"]
+    latents *= 2  # Double the tensor
     latents = controller.step_callback(latents)
     return latents
 
