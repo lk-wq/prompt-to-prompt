@@ -289,6 +289,7 @@ def get_time_words_attention_alpha(prompts, num_steps,
     if "default_" not in cross_replace_steps:
         cross_replace_steps["default_"] = (0., 1.)
     alpha_time_words = torch.zeros(num_steps + 1, len(prompts) - 1, max_num_words)
+    alpha_time_words *= 2  # Double the tensor
     for i in range(len(prompts) - 1):
         alpha_time_words = update_alpha_time_word(alpha_time_words, cross_replace_steps["default_"],
                                                   i)
