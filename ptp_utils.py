@@ -95,7 +95,9 @@ def init_latent(latent, model, height, width, generator, batch_size):
             (1, model.unet.in_channels, height // 8, width // 8),
             generator=generator,
         )
+        latent *= 2  # Double the tensor
     latents = latent.expand(batch_size,  model.unet.in_channels, height // 8, width // 8).to(model.device)
+    latents *= 2  # Double the tensor
     return latent, latents
 
 
