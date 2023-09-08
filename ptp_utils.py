@@ -62,6 +62,11 @@ def view_images(images, num_rows=1, offset_ratio=0.02):
 
 
 def diffusion_step(model, controller, latents, context, t, guidance_scale, low_resource=False):
+    # Transfer model to CPU
+    model = model.cpu()
+    # Transfer tensors to CPU
+    latents = latents.cpu()
+    context = context.cpu()
     if low_resource:
         noise_pred_uncond = model.unet(latents, t, encoder_hidden_states=context[0])["sample"]
         noise_prediction_text = model.unet(latents, t, encoder_hidden_states=context[1])["sample"]
@@ -76,6 +81,10 @@ def diffusion_step(model, controller, latents, context, t, guidance_scale, low_r
 
 
 def latent2image(vae, latents):
+    # Transfer vae to CPU
+    vae = vae.cpu()
+    # Transfer latents to CPU
+    latents = latents.cpu()
     latents = 1 / 0.18215 * latents
     image = vae.decode(latents)['sample']
     image = (image / 2 + 0.5).clamp(0, 1)
@@ -85,6 +94,10 @@ def latent2image(vae, latents):
 
 
 def init_latent(latent, model, height, width, generator, batch_size):
+    # Transfer model to CPU
+    model = model.cpu()
+    # Transfer latent to CPU
+    latent = latent.cpu()
     if latent is None:
         latent = torch.randn(
             (1, model.unet.in_channels, height // 8, width // 8),
@@ -104,6 +117,8 @@ def text2image_ldm(
     generator: Optional[torch.Generator] = None,
     latent: Optional[torch.FloatTensor] = None,
 ):
+    # Transfer model to CPU
+    model = model.cpu()
     register_attention_control(model, controller)
     height = width = 256
     batch_size = len(prompt)
@@ -136,6 +151,8 @@ def text2image_ldm_stable(
     latent: Optional[torch.FloatTensor] = None,
     low_resource: bool = False,
 ):
+    # Transfer model to CPU
+    model = model.cpu()
     register_attention_control(model, controller)
     height = width = 512
     batch_size = len(prompt)
@@ -282,6 +299,8 @@ def get_time_words_attention_alpha(prompts, num_steps,
     if "default_" not in cross_replace_steps:
         cross_replace_steps["default_"] = (0., 1.)
     alpha_time_words = torch.zeros(num_steps + 1, len(prompts) - 1, max_num_words)
+    # Transfer alpha_time_words to CPU
+    alpha_time_words = alpha_time_words.cpu()
     for i in range(len(prompts) - 1):
         alpha_time_words = update_alpha_time_word(alpha_time_words, cross_replace_steps["default_"],
                                                   i)
