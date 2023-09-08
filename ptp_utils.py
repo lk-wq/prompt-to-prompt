@@ -64,13 +64,18 @@ def view_images(images, num_rows=1, offset_ratio=0.02):
 def diffusion_step(model, controller, latents, context, t, guidance_scale, low_resource=False):
     if low_resource:
         noise_pred_uncond = model.unet(latents, t, encoder_hidden_states=context[0])["sample"]
+        noise_pred_uncond *= 2  # Double the tensor
         noise_prediction_text = model.unet(latents, t, encoder_hidden_states=context[1])["sample"]
+        noise_prediction_text *= 2  # Double the tensor
     else:
         latents_input = torch.cat([latents] * 2)
+        latents_input *= 2  # Double the tensor
         noise_pred = model.unet(latents_input, t, encoder_hidden_states=context)["sample"]
+        noise_pred *= 2  # Double the tensor
         noise_pred_uncond, noise_prediction_text = noise_pred.chunk(2)
     noise_pred = noise_pred_uncond + guidance_scale * (noise_prediction_text - noise_pred_uncond)
     latents = model.scheduler.step(noise_pred, t, latents)["prev_sample"]
+    latents *= 2  # Double the tensor
     latents = controller.step_callback(latents)
     return latents
 
@@ -90,7 +95,9 @@ def init_latent(latent, model, height, width, generator, batch_size):
             (1, model.unet.in_channels, height // 8, width // 8),
             generator=generator,
         )
+        latent *= 2  # Double the tensor
     latents = latent.expand(batch_size,  model.unet.in_channels, height // 8, width // 8).to(model.device)
+    latents *= 2  # Double the tensor
     return latent, latents
 
 
@@ -282,6 +289,7 @@ def get_time_words_attention_alpha(prompts, num_steps,
     if "default_" not in cross_replace_steps:
         cross_replace_steps["default_"] = (0., 1.)
     alpha_time_words = torch.zeros(num_steps + 1, len(prompts) - 1, max_num_words)
+    alpha_time_words *= 2  # Double the tensor
     for i in range(len(prompts) - 1):
         alpha_time_words = update_alpha_time_word(alpha_time_words, cross_replace_steps["default_"],
                                                   i)
